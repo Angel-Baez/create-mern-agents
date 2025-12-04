@@ -144,6 +144,7 @@ download_agent() {
     # Verificar si ya existe
     if agent_exists "$agent"; then
         print_warning "Agente '$agent' ya está instalado"
+        local replace
         read -p "¿Deseas reemplazarlo? [y/N]: " replace
         if [[ ! "$replace" =~ ^[Yy]$ ]]; then
             print_info "Omitiendo $agent"
