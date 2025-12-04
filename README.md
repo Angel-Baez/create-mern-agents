@@ -1,8 +1,16 @@
 # create-mern-agents
 
-CLI oficial para inicializar el **MERN Agents Framework**, un sistema de agentes para acelerar el desarrollo de proyectos MERN + Next.js + TypeScript mediante GitHub Copilot.
+CLI oficial para inicializar el **MERN Agents Framework**, un sistema de agentes inteligentes para acelerar el desarrollo de proyectos MERN + Next.js + TypeScript mediante GitHub Copilot.
 
-## 🚀 Instalación
+## 🚀 Características
+
+- ✅ **Selección inteligente de agentes** - Detecta automáticamente las características de tu proyecto
+- 🎯 **Modo minimal** - Instala solo lo esencial para MVPs
+- 🔧 **Agentes modulares** - Agrega solo los agentes que necesitas
+- 📦 **15 agentes especializados** - Desde arquitectura hasta DevOps
+- 🤖 **Compatible con GitHub Copilot** - Diseñado para trabajar con @mentions
+
+## 📥 Instalación
 
 No requiere instalación global.  
 Ejecuta:
@@ -10,3 +18,244 @@ Ejecuta:
 ```bash
 npx create-mern-agents
 ```
+
+### Opciones disponibles
+
+#### Instalación básica (recomendado para MVPs)
+```bash
+npx create-mern-agents --minimal
+```
+Instala solo 6 agentes core esenciales:
+- orchestrator
+- solution-architect
+- backend-architect
+- frontend-architect
+- code-reviewer
+- test-engineer
+
+#### Instalación con detección automática
+```bash
+npx create-mern-agents
+```
+El script detecta automáticamente:
+- ✅ Autenticación (next-auth, passport, JWT)
+- ✅ Pipeline CI/CD (.github/workflows, etc.)
+- ✅ Integración de IA (OpenAI, Anthropic)
+- ✅ Observabilidad (Sentry, New Relic)
+- ✅ Base de datos (Prisma, Mongoose)
+- ✅ Tamaño del proyecto
+
+Y descarga solo los agentes necesarios.
+
+#### Instalación con flags personalizados
+```bash
+# Omitir agentes de CI/CD
+npx create-mern-agents --no-pipeline
+
+# Omitir agentes de autenticación
+npx create-mern-agents --no-auth
+
+# Omitir agentes de IA
+npx create-mern-agents --no-ai
+
+# Omitir agentes de observabilidad
+npx create-mern-agents --no-observability
+
+# Combinar múltiples flags
+npx create-mern-agents --no-pipeline --no-ai
+```
+
+#### Ver ayuda
+```bash
+npx create-mern-agents --help
+```
+
+## 🧩 Agregar agentes después
+
+Si instalaste con `--minimal` o quieres agregar agentes específicos después:
+
+```bash
+# Agregar un agente
+./add-agent.sh security-guardian
+
+# Agregar múltiples agentes
+./add-agent.sh devops-engineer release-manager
+
+# Ver agentes disponibles
+./add-agent.sh --help
+```
+
+## 📋 Agentes disponibles
+
+### 🎯 Agentes Core (siempre instalados)
+- **orchestrator** - Coordina todos los demás agentes
+- **solution-architect** - Diseña la arquitectura del sistema
+- **code-reviewer** - Revisa código y sugiere mejoras
+- **documentation-engineer** - Mantiene documentación actualizada
+
+### 🏗️ Agentes de Arquitectura
+- **backend-architect** - Diseña APIs y servicios backend
+- **frontend-architect** - Diseña arquitectura de componentes y UI
+
+### 🔒 Agentes de Seguridad y Datos
+- **security-guardian** - Implementa autenticación y seguridad
+- **data-engineer** - Diseña esquemas de BD y optimiza queries
+
+### 🧪 Agentes de Calidad
+- **test-engineer** - Crea tests unitarios e integración
+- **qa-lead** - Define estrategia de testing y QA
+
+### 🚀 Agentes de DevOps
+- **devops-engineer** - Configura CI/CD y automatización
+- **release-manager** - Gestiona versiones y releases
+
+### 📊 Agentes de Observabilidad
+- **observability-engineer** - Implementa logging, métricas y alertas
+
+### 🤖 Agentes Especializados
+- **ai-integration-engineer** - Integra APIs de IA (OpenAI, Anthropic, etc.)
+- **product-manager** - Define features y prioriza backlog
+
+Para más detalles sobre cada agente, consulta la [**Guía de Agentes**](./AGENTS_GUIDE.md).
+
+## 📖 Guía completa
+
+Ver [**AGENTS_GUIDE.md**](./AGENTS_GUIDE.md) para:
+- Descripción detallada de cada agente
+- Cuándo usar cada agente
+- Guía de selección por tipo de proyecto
+- Guía de selección por características
+- Ejemplos de comandos
+
+## 🎯 Casos de uso comunes
+
+### Proyecto MVP
+```bash
+npx create-mern-agents --minimal
+```
+
+### E-commerce con pagos
+```bash
+npx create-mern-agents
+# Durante la configuración:
+# - Autenticación: Sí
+# - Pagos: Sí (Stripe/PayPal)
+```
+
+### SaaS con CI/CD
+```bash
+npx create-mern-agents
+# El script detectará automáticamente tu pipeline CI/CD
+# y descargará devops-engineer y release-manager
+```
+
+### API Backend sin frontend
+```bash
+npx create-mern-agents
+# El script detectará la ausencia de componentes frontend
+```
+
+### Migración incremental
+```bash
+# 1. Empezar con minimal
+npx create-mern-agents --minimal
+
+# 2. Agregar autenticación cuando la implementes
+./add-agent.sh security-guardian
+
+# 3. Agregar CI/CD cuando lo configures
+./add-agent.sh devops-engineer release-manager
+
+# 4. Agregar observabilidad para producción
+./add-agent.sh observability-engineer
+```
+
+## 🔧 Cómo funciona
+
+1. **Detección automática:** El script analiza tu `package.json`, archivos de configuración, y estructura del proyecto para detectar características.
+
+2. **Selección inteligente:** Basado en la detección, descarga solo los agentes necesarios:
+   - Proyectos pequeños (< 50 archivos): Agentes core + básicos
+   - Proyectos medianos (50-200 archivos): Core + gestión + QA
+   - Proyectos grandes (> 200 archivos): Todos los agentes relevantes
+
+3. **Instalación modular:** Puedes agregar agentes específicos en cualquier momento con `./add-agent.sh`
+
+## 📂 Estructura creada
+
+```
+tu-proyecto/
+├── .github/
+│   ├── agents/                    # Ubicación estándar
+│   │   ├── _core/                # Contexto compartido
+│   │   ├── project-context.yml   # Configuración del proyecto
+│   │   └── *.md                  # Archivos de agentes
+│   └── copilot/
+│       └── agents/               # Ubicación alternativa (compatibilidad)
+│           ├── _core/
+│           ├── project-context.yml
+│           └── *.md
+├── package.json
+└── ...
+```
+
+## 🤖 Uso con GitHub Copilot
+
+Después de la instalación, usa los agentes en GitHub Copilot Chat:
+
+```
+@orchestrator ¿Cómo empiezo a desarrollar mi aplicación?
+@backend-architect Crea una API REST para gestionar productos
+@frontend-architect Diseña la arquitectura de componentes para el dashboard
+@security-guardian Implementa autenticación con JWT
+@test-engineer Crea tests para el servicio de pagos
+```
+
+## 🔄 Actualizar agentes
+
+Para actualizar los agentes a la última versión:
+
+```bash
+# Volver a ejecutar el script mantendrá tu project-context.yml
+npx create-mern-agents
+
+# O actualizar agentes específicos
+./add-agent.sh security-guardian  # Responde "y" para reemplazar
+```
+
+## 🆘 Solución de problemas
+
+### El script no detecta características
+Asegúrate de que:
+- Tienes un `package.json` válido
+- Las dependencias están listadas correctamente
+- Archivos de configuración (.env.example, etc.) existen
+
+### Agregar agentes manualmente
+Si la detección automática falla, usa flags o `add-agent.sh`:
+
+```bash
+# Forzar omisión de agentes
+npx create-mern-agents --no-pipeline --no-auth
+
+# Agregar manualmente después
+./add-agent.sh security-guardian devops-engineer
+```
+
+## 📚 Recursos adicionales
+
+- **Framework completo:** [mern-agents-framework](https://github.com/Angel-Baez/mern-agents-framework)
+- **Guía de agentes:** [AGENTS_GUIDE.md](./AGENTS_GUIDE.md)
+- **Documentación de GitHub Copilot:** [docs.github.com/copilot](https://docs.github.com/en/copilot)
+
+## 🤝 Contribuir
+
+Las contribuciones son bienvenidas. Por favor abre un issue o PR en el repositorio.
+
+## 📄 Licencia
+
+MIT © Angel Baez
+
+---
+
+**¿Dudas?** Consulta la [Guía de Agentes](./AGENTS_GUIDE.md) o abre un [issue](https://github.com/Angel-Baez/create-mern-agents/issues).
