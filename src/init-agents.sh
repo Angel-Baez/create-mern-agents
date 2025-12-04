@@ -112,7 +112,7 @@ collect_project_info() {
     PROJECT_DESCRIPTION=${PROJECT_DESCRIPTION:-"Proyecto MERN Stack con Next.js y TypeScript"}
     
     # Repositorio
-    DEFAULT_REPO="usuario/$PROJECT_NAME"
+    DEFAULT_REPO="your-username/$PROJECT_NAME"
     read -p "Repositorio GitHub [$DEFAULT_REPO]: " PROJECT_REPO
     PROJECT_REPO=${PROJECT_REPO:-$DEFAULT_REPO}
     
@@ -256,6 +256,11 @@ download_core_files() {
 # SELECCIÓN INTELIGENTE DE AGENTES
 # =============================================================================
 
+count_entities() {
+    local entities="$1"
+    echo "$entities" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | wc -l
+}
+
 select_agents_by_needs() {
     local agents=()
     
@@ -292,7 +297,7 @@ select_agents_by_needs() {
     fi
     
     # Si tiene base de datos compleja (más de 3 entidades)
-    local entity_count=$(echo "$ENTITIES" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | wc -l)
+    local entity_count=$(count_entities "$ENTITIES")
     if [ "$entity_count" -gt 3 ]; then
         agents+=("data-engineer.md")
     fi
@@ -565,7 +570,7 @@ main() {
         # Valores por defecto para MVP
         PROJECT_NAME=$(basename "$(pwd)")
         PROJECT_DESCRIPTION="Proyecto MERN Stack con Next.js y TypeScript"
-        PROJECT_REPO="usuario/$PROJECT_NAME"
+        PROJECT_REPO="your-username/$PROJECT_NAME"
         PROJECT_TYPE="web-app"
         PROJECT_SIZE="small"
         FEAT_AUTH="true"
