@@ -9,13 +9,16 @@
 #   curl -fsSL https://raw.githubusercontent.com/Angel-Baez/mern-agents-framework/main/init-agents.sh | bash
 #   
 #   O localmente:
-#   ./init-agents.sh [--template=<template>]
+#   ./init-agents.sh [--template=<template>] [--minimal]
 #
 # Templates disponibles:
 #   - pwa-offline
 #   - saas-platform
 #   - ecommerce
 #   - admin-dashboard
+#
+# Opciones:
+#   --minimal    Instala solo agentes core para MVP (5-6 agentes)
 # =============================================================================
 
 set -e
@@ -187,6 +190,29 @@ collect_project_info() {
     echo ""
     read -p "Entidades principales del dominio (separadas por coma) [User,Product]: " ENTITIES
     ENTITIES=${ENTITIES:-"User,Product"}
+    
+    # Tamaño y complejidad del proyecto
+    echo ""
+    echo "Tamaño y complejidad del proyecto:"
+    echo "  1) MVP/Pequeño (prototipo o proyecto personal)"
+    echo "  2) Mediano (startup o producto en crecimiento)"
+    echo "  3) Grande/Empresa (equipo grande, CI/CD completo)"
+    read -p "Selecciona [1-3, default: 1]: " PROJECT_SIZE_CHOICE
+    
+    case $PROJECT_SIZE_CHOICE in
+        2) PROJECT_SIZE="medium" ;;
+        3) PROJECT_SIZE="large" ;;
+        *) PROJECT_SIZE="small" ;;
+    esac
+    
+    # Preguntar sobre CI/CD solo si es mediano o grande
+    if [ "$PROJECT_SIZE" != "small" ]; then
+        echo ""
+        read -p "¿Configurar CI/CD con GitHub Actions? [Y/n]: " CICD_CHOICE
+        FEAT_CICD=$([[ "$CICD_CHOICE" =~ ^[Nn]$ ]] && echo "false" || echo "true")
+    else
+        FEAT_CICD="false"
+    fi
 }
 
 # =============================================================================
@@ -226,10 +252,88 @@ download_core_files() {
     done
 }
 
-download_agents() {
-    print_step "Descargando agentes..."
+# =============================================================================
+# SELECCIÓN INTELIGENTE DE AGENTES
+# =============================================================================
+
+select_agents_by_needs() {
+    local agents=()
     
-    local agents=(
+    # CORE - Siempre necesarios
+    agents+=("orchestrator.md")
+    agents+=("product-manager.md")
+    agents+=("solution-architect.md")
+    
+    # Arquitectos - Siempre en desarrollo
+    agents+=("backend-architect.md")
+    agents+=("frontend-architect.md")
+    
+    # Testing básico - Siempre
+    agents+=("test-engineer.md")
+    
+    # Según tamaño del proyecto
+    if [ "$PROJECT_SIZE" = "medium" ] || [ "$PROJECT_SIZE" = "large" ]; then
+        agents+=("qa-lead.md")
+        agents+=("code-reviewer.md")
+    fi
+    
+    if [ "$PROJECT_SIZE" = "large" ]; then
+        agents+=("documentation-engineer.md")
+        agents+=("observability-engineer.md")
+    fi
+    
+    # Según features
+    if [ "$FEAT_AUTH" = "true" ] || [ "$FEAT_PAYMENTS" = "true" ]; then
+        agents+=("security-guardian.md")
+    fi
+    
+    if [ "$FEAT_AI" = "true" ]; then
+        agents+=("ai-integration-engineer.md")
+    fi
+    
+    # Si tiene base de datos compleja (más de 3 entidades)
+    local entity_count=$(echo "$ENTITIES" | tr ',' '\n' | wc -l)
+    if [ "$entity_count" -gt 3 ]; then
+        agents+=("data-engineer.md")
+    fi
+    
+    # CI/CD
+    if [ "$FEAT_CICD" = "true" ]; then
+        agents+=("devops-engineer.md")
+        agents+=("release-manager.md")
+    fi
+    
+    echo "${agents[@]}"
+}
+
+download_agents() {
+    print_step "Seleccionando agentes necesarios para tu proyecto..."
+    
+    # Obtener lista inteligente de agentes
+    local agents=($(select_agents_by_needs))
+    
+    # Total de agentes disponibles
+    local total_available=15
+    
+    print_step "Se descargarán ${#agents[@]} de $total_available agentes disponibles"
+    echo ""
+    
+    for agent in "${agents[@]}"; do
+        # Descargar a ubicación estándar
+        $DOWNLOAD_CMD "$REPO_URL/agents/$agent" > "$AGENTS_DIR_STANDARD/$agent" 2>/dev/null || {
+            print_warning "No se pudo descargar $agent"
+            continue
+        }
+        # Copiar a ubicación alternativa (compatibilidad)
+        cp "$AGENTS_DIR_STANDARD/$agent" "$AGENTS_DIR_COMPAT/$agent" 2>/dev/null || true
+        print_success "  $agent"
+    done
+    
+    # Mostrar agentes omitidos
+    echo ""
+    print_step "Agentes omitidos (no necesarios para este proyecto):"
+    
+    local all_agents=(
         "orchestrator.md"
         "product-manager.md"
         "solution-architect.md"
@@ -247,15 +351,24 @@ download_agents() {
         "code-reviewer.md"
     )
     
-    for agent in "${agents[@]}"; do
-        # Descargar a ubicación estándar
-        $DOWNLOAD_CMD "$REPO_URL/agents/$agent" > "$AGENTS_DIR_STANDARD/$agent" 2>/dev/null || {
-            print_warning "No se pudo descargar $agent"
-        }
-        # Copiar a ubicación alternativa (compatibilidad)
-        cp "$AGENTS_DIR_STANDARD/$agent" "$AGENTS_DIR_COMPAT/$agent" 2>/dev/null || true
-        print_success "  $agent"
+    local omitted=0
+    for agent in "${all_agents[@]}"; do
+        local found=0
+        for selected in "${agents[@]}"; do
+            if [ "$agent" = "$selected" ]; then
+                found=1
+                break
+            fi
+        done
+        if [ $found -eq 0 ]; then
+            echo "    • $agent"
+            omitted=$((omitted + 1))
+        fi
     done
+    
+    if [ $omitted -eq 0 ]; then
+        echo "    • Ninguno (se descargaron todos los agentes)"
+    fi
 }
 
 download_template() {
@@ -315,6 +428,7 @@ project:
   description: "$PROJECT_DESCRIPTION"
   repository: "$PROJECT_REPO"
   type: "$PROJECT_TYPE"
+  size: "$PROJECT_SIZE"
   version: "0.1.0"
 
 stack:
@@ -340,6 +454,7 @@ features:
   payment_provider: "$PAYMENT_PROVIDER"
   ai_integration: $FEAT_AI
   ai_provider: "$AI_PROVIDER"
+  ci_cd: $FEAT_CICD
 
 architecture:
   pattern: "clean-architecture"
@@ -391,6 +506,7 @@ print_summary() {
     echo ""
     echo -e "Proyecto configurado: ${CYAN}$PROJECT_NAME${NC}"
     echo -e "Tipo: ${CYAN}$PROJECT_TYPE${NC}"
+    echo -e "Tamaño: ${CYAN}$PROJECT_SIZE${NC}"
     echo ""
     echo "Archivos creados:"
     echo -e "  ${BLUE}$AGENTS_DIR_STANDARD/${NC} (Ubicación estándar)"
@@ -411,7 +527,10 @@ print_summary() {
     echo ""
     echo -e "     ${PURPLE}@orchestrator${NC} ¿Cómo empiezo a desarrollar mi aplicación?"
     echo ""
-    echo -e "  3. Consulta la documentación: ${CYAN}https://github.com/Angel-Baez/mern-agents-framework${NC}"
+    echo -e "  3. Si necesitas más agentes después:"
+    echo -e "     ${CYAN}./src/add-agent.sh --list${NC}"
+    echo ""
+    echo -e "  4. Consulta la documentación: ${CYAN}https://github.com/Angel-Baez/mern-agents-framework${NC}"
     echo ""
 }
 
@@ -421,6 +540,7 @@ print_summary() {
 
 main() {
     local TEMPLATE=""
+    local MINIMAL_MODE=false
     
     # Parse arguments
     for arg in "$@"; do
@@ -428,12 +548,40 @@ main() {
             --template=*)
                 TEMPLATE="${arg#*=}"
                 ;;
+            --minimal)
+                MINIMAL_MODE=true
+                ;;
         esac
     done
     
     print_banner
     check_requirements
-    collect_project_info
+    
+    # En modo minimal, establecer configuración automática
+    if [ "$MINIMAL_MODE" = true ]; then
+        print_step "Modo MINIMAL activado - Configuración rápida para MVP"
+        echo ""
+        
+        # Valores por defecto para MVP
+        PROJECT_NAME=$(basename "$(pwd)")
+        PROJECT_DESCRIPTION="Proyecto MERN Stack con Next.js y TypeScript"
+        PROJECT_REPO="usuario/$PROJECT_NAME"
+        PROJECT_TYPE="web-app"
+        PROJECT_SIZE="small"
+        FEAT_AUTH="true"
+        FEAT_PWA="false"
+        FEAT_PAYMENTS="false"
+        FEAT_AI="false"
+        FEAT_CICD="false"
+        PAYMENT_PROVIDER=""
+        AI_PROVIDER=""
+        ENTITIES="User,Product"
+        
+        print_success "Configuración MVP establecida"
+        print_warning "Puedes personalizar después editando project-context.yml"
+    else
+        collect_project_info
+    fi
     
     echo ""
     create_directory_structure
