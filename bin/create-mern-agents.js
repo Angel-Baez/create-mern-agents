@@ -14,7 +14,11 @@ try {
   // Asegurar permisos de ejecución
   fs.chmodSync(scriptPath, 0o755);
 
-  execSync(`bash "${scriptPath}"`, {
+  // Pasar argumentos de línea de comandos al script
+  const args = process.argv.slice(2).join(" ");
+  const command = `bash "${scriptPath}" ${args}`;
+
+  execSync(command, {
     stdio: "inherit",
     env: process.env
   });
