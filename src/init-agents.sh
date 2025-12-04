@@ -18,7 +18,7 @@
 #   - admin-dashboard
 #
 # Opciones:
-#   --minimal    Instala solo agentes core para MVP (5-6 agentes)
+#   --minimal    Instala solo agentes core para MVP (6-7 agentes)
 # =============================================================================
 
 set -e
@@ -292,7 +292,7 @@ select_agents_by_needs() {
     fi
     
     # Si tiene base de datos compleja (más de 3 entidades)
-    local entity_count=$(echo "$ENTITIES" | tr ',' '\n' | wc -l)
+    local entity_count=$(echo "$ENTITIES" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | wc -l)
     if [ "$entity_count" -gt 3 ]; then
         agents+=("data-engineer.md")
     fi

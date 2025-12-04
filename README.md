@@ -17,7 +17,7 @@ npx create-mern-agents
 # Instalación estándar (interactiva)
 npx create-mern-agents
 
-# Modo minimal - Solo agentes CORE para MVP (6 agentes)
+# Modo minimal - Solo agentes CORE para MVP (6-7 agentes)
 npx create-mern-agents --minimal
 
 # Con template específico
