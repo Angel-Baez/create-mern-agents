@@ -1,10 +1,17 @@
 {
   "name": "create-mern-agents",
-  "version": "1.0.0",
-  "description": "CLI oficial para instalar e inicializar el MERN Agents Framework",
+  "version": "1.1.0",
+  "description": "CLI oficial para instalar e inicializar el MERN Agents Framework con descarga inteligente de agentes",
   "bin": {
-    "create-mern-agents": "./bin/create-mern-agents.js"
+    "create-mern-agents": "./bin/create-mern-agents.js",
+    "add-mern-agent": "./bin/add-mern-agent.js"
   },
+  "files": [
+    "bin/",
+    "src/",
+    "AGENTS_GUIDE.md",
+    "README.md"
+  ],
   "keywords": [
     "mern",
     "nextjs",
@@ -13,9 +20,20 @@
     "automation",
     "framework",
     "copilot",
-    "agents-framework"
+    "agents-framework",
+    "ai-agents",
+    "intelligent-agents",
+    "github-copilot"
   ],
   "author": "Angel Baez",
   "license": "MIT",
-  "type": "commonjs"
+  "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Angel-Baez/create-mern-agents.git"
+  },
+  "homepage": "https://github.com/Angel-Baez/create-mern-agents#readme",
+  "bugs": {
+    "url": "https://github.com/Angel-Baez/create-mern-agents/issues"
+  }
 }

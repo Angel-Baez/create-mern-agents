@@ -10,19 +10,15 @@ console.log("");
 
 try {
   const scriptPath = path.join(__dirname, "../src/init-agents.sh");
+  
+  // Obtener argumentos pasados al CLI (después de 'node' y 'script.js')
+  const args = process.argv.slice(2).join(" ");
 
   // Asegurar permisos de ejecución
   fs.chmodSync(scriptPath, 0o755);
 
-  // Obtener argumentos de la línea de comandos (excluyendo node y el script)
-  const args = process.argv.slice(2);
-  
-  // Construir el comando con los argumentos
-  const command = args.length > 0 
-    ? `bash "${scriptPath}" ${args.map(arg => `"${arg}"`).join(' ')}`
-    : `bash "${scriptPath}"`;
-
-  execSync(command, {
+  // Pasar argumentos al script bash
+  execSync(`bash "${scriptPath}" ${args}`, {
     stdio: "inherit",
     env: process.env
   });
