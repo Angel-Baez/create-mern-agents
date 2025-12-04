@@ -252,6 +252,57 @@ npx create-mern-agents --no-pipeline --no-auth
 
 Las contribuciones son bienvenidas. Por favor abre un issue o PR en el repositorio.
 
+## 🚀 Publicación automatizada via GitHub Actions
+
+Este paquete utiliza GitHub Actions para automatizar la publicación en npm cuando se crean tags de release.
+
+### Configuración inicial (solo para mantenedores)
+
+#### 1. Crear token de automatización en npm
+
+1. Ve a [npmjs.com](https://www.npmjs.com) e inicia sesión
+2. Click en tu avatar → **Access Tokens**
+3. Click en **Generate New Token** → **Automation**
+4. Copia el token generado (solo se muestra una vez)
+
+> **Nota sobre 2FA:** Los tokens de tipo "Automation" funcionan incluso si tienes 2FA habilitado en tu cuenta npm. No necesitas ingresar códigos 2FA durante la publicación automatizada.
+
+#### 2. Agregar el token como secret en GitHub
+
+1. Ve al repositorio en GitHub
+2. Ve a **Settings** → **Secrets and variables** → **Actions**
+3. Click en **New repository secret**
+4. Nombre: `NPM_TOKEN`
+5. Valor: Pega el token que copiaste de npmjs.com
+6. Click en **Add secret**
+
+### Publicar una nueva versión
+
+Para publicar una nueva versión del paquete:
+
+```bash
+# 1. Actualiza la versión en package.json
+npm version patch  # o minor, o major
+
+# 2. Crea un tag de release
+git tag v1.1.0
+
+# 3. Haz push del tag a GitHub
+git push origin v1.1.0
+```
+
+El workflow de GitHub Actions se disparará automáticamente y:
+- ✅ Descargará el código del tag
+- ✅ Instalará las dependencias
+- ✅ Ejecutará el build (si existe un script `build`)
+- ✅ Publicará el paquete en npm con acceso público
+
+### Ver el estado de la publicación
+
+1. Ve a la pestaña **Actions** en el repositorio de GitHub
+2. Busca el workflow "Publish package to npm"
+3. Click en la ejecución correspondiente a tu tag para ver los detalles
+
 ## 📄 Licencia
 
 MIT © Angel Baez
