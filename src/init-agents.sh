@@ -34,6 +34,21 @@ REPO_URL="https://raw.githubusercontent.com/Angel-Baez/mern-agents-framework/mai
 AGENTS_DIR_STANDARD=".github/agents"
 AGENTS_DIR_COMPAT=".github/copilot/agents"
 
+# Variables globales para flags
+MINIMAL_MODE=false
+NO_PIPELINE=false
+NO_AUTH=false
+NO_AI=false
+NO_OBSERVABILITY=false
+
+# Variables de detección
+HAS_AUTH=false
+HAS_PIPELINE=false
+HAS_AI=false
+HAS_OBSERVABILITY=false
+HAS_DATABASE=false
+PROJECT_SIZE="small"
+
 # =============================================================================
 # FUNCIONES DE UTILIDAD
 # =============================================================================
@@ -86,6 +101,175 @@ check_requirements() {
     fi
     
     print_success "Herramienta de descarga disponible"
+}
+
+# =============================================================================
+# DETECCIÓN DE CARACTERÍSTICAS DEL PROYECTO
+# =============================================================================
+
+detect_authentication() {
+    # Buscar dependencias relacionadas con autenticación en package.json
+    if grep -qE '"(next-auth|passport|jsonwebtoken|bcrypt|bcryptjs|express-session|cookie-session|auth0|clerk)"' package.json 2>/dev/null; then
+        HAS_AUTH=true
+        return
+    fi
+    
+    # Buscar archivos de configuración de auth
+    if [ -f "middleware.ts" ]; then
+        if grep -qE "(auth|session|token)" middleware.ts 2>/dev/null; then
+            HAS_AUTH=true
+            return
+        fi
+    fi
+    if [ -f "middleware.js" ]; then
+        if grep -qE "(auth|session|token)" middleware.js 2>/dev/null; then
+            HAS_AUTH=true
+            return
+        fi
+    fi
+    
+    # Buscar en archivos .env.example
+    if [ -f ".env.example" ]; then
+        if grep -qE "(AUTH|SESSION|JWT|TOKEN)_SECRET" .env.example 2>/dev/null; then
+            HAS_AUTH=true
+            return
+        fi
+    fi
+}
+
+detect_pipeline() {
+    # Buscar archivos de CI/CD
+    if [ -d ".github/workflows" ] && [ "$(ls -A .github/workflows 2>/dev/null)" ]; then
+        HAS_PIPELINE=true
+        return
+    fi
+    
+    if [ -f ".gitlab-ci.yml" ] || [ -f ".circleci/config.yml" ] || [ -f "azure-pipelines.yml" ] || [ -f "bitbucket-pipelines.yml" ]; then
+        HAS_PIPELINE=true
+        return
+    fi
+}
+
+detect_ai_integration() {
+    # Buscar dependencias de IA
+    if grep -qE '"(openai|@anthropic-ai/sdk|@google/generative-ai|langchain|llamaindex|replicate)"' package.json 2>/dev/null; then
+        HAS_AI=true
+        return
+    fi
+    
+    # Buscar variables de entorno de IA
+    if [ -f ".env.example" ]; then
+        if grep -qE "(OPENAI|ANTHROPIC|GOOGLE_AI|REPLICATE)_API_KEY" .env.example 2>/dev/null; then
+            HAS_AI=true
+            return
+        fi
+    fi
+}
+
+detect_observability() {
+    # Buscar herramientas de monitoreo y observabilidad
+    if grep -qE '"(newrelic|@sentry/nextjs|@datadog|pino|winston|elastic-apm-node|@opentelemetry)"' package.json 2>/dev/null; then
+        HAS_OBSERVABILITY=true
+        return
+    fi
+    
+    # Buscar archivos de configuración
+    if [ -f "newrelic.js" ] || [ -f "sentry.client.config.js" ] || [ -f "datadog.yml" ]; then
+        HAS_OBSERVABILITY=true
+        return
+    fi
+}
+
+detect_database() {
+    # Buscar dependencias de bases de datos
+    if grep -qE '"(mongoose|prisma|@prisma/client|mongodb|pg|mysql2|sequelize|typeorm|drizzle-orm)"' package.json 2>/dev/null; then
+        HAS_DATABASE=true
+        return
+    fi
+    
+    # Buscar archivos de configuración de DB
+    if [ -f "prisma/schema.prisma" ] || [ -d "models" ] || [ -d "src/models" ]; then
+        HAS_DATABASE=true
+        return
+    fi
+}
+
+detect_project_size() {
+    # Contar archivos de código (excluyendo node_modules, dist, etc.)
+    local code_files=$(find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) \
+        -not -path "*/node_modules/*" \
+        -not -path "*/dist/*" \
+        -not -path "*/.next/*" \
+        -not -path "*/build/*" 2>/dev/null | wc -l)
+    
+    # Leer package.json para ver número de dependencias
+    local deps_count=0
+    if command -v jq &> /dev/null; then
+        deps_count=$(jq '(.dependencies // {} | length) + (.devDependencies // {} | length)' package.json 2>/dev/null || echo 0)
+    else
+        # Método alternativo más robusto: buscar en secciones específicas
+        # Extraer solo la sección de dependencies
+        local deps=$(sed -n '/"dependencies":/,/^  }/p' package.json 2>/dev/null | grep -c '": "' || echo 0)
+        local devdeps=$(sed -n '/"devDependencies":/,/^  }/p' package.json 2>/dev/null | grep -c '": "' || echo 0)
+        deps_count=$((deps + devdeps))
+    fi
+    
+    # Determinar tamaño del proyecto
+    if [ "$code_files" -lt 50 ] && [ "$deps_count" -lt 30 ]; then
+        PROJECT_SIZE="small"
+    elif [ "$code_files" -lt 200 ] && [ "$deps_count" -lt 60 ]; then
+        PROJECT_SIZE="medium"
+    else
+        PROJECT_SIZE="large"
+    fi
+}
+
+run_auto_detection() {
+    if [ "$MINIMAL_MODE" = true ]; then
+        print_step "Modo minimal activado - omitiendo detección automática"
+        return
+    fi
+    
+    print_step "Detectando características del proyecto..."
+    
+    # Aplicar overrides manuales
+    if [ "$NO_AUTH" = true ]; then
+        HAS_AUTH=false
+    else
+        detect_authentication
+    fi
+    
+    if [ "$NO_PIPELINE" = true ]; then
+        HAS_PIPELINE=false
+    else
+        detect_pipeline
+    fi
+    
+    if [ "$NO_AI" = true ]; then
+        HAS_AI=false
+    else
+        detect_ai_integration
+    fi
+    
+    if [ "$NO_OBSERVABILITY" = true ]; then
+        HAS_OBSERVABILITY=false
+    else
+        detect_observability
+    fi
+    
+    detect_database
+    detect_project_size
+    
+    # Mostrar resultados de detección
+    echo ""
+    echo -e "${CYAN}Características detectadas:${NC}"
+    echo -e "  Tamaño del proyecto: ${YELLOW}$PROJECT_SIZE${NC}"
+    [ "$HAS_AUTH" = true ] && echo -e "  ${GREEN}✓${NC} Autenticación detectada" || echo -e "  ${RED}✗${NC} Sin autenticación"
+    [ "$HAS_PIPELINE" = true ] && echo -e "  ${GREEN}✓${NC} Pipeline CI/CD detectado" || echo -e "  ${RED}✗${NC} Sin pipeline CI/CD"
+    [ "$HAS_AI" = true ] && echo -e "  ${GREEN}✓${NC} Integración de IA detectada" || echo -e "  ${RED}✗${NC} Sin integración de IA"
+    [ "$HAS_OBSERVABILITY" = true ] && echo -e "  ${GREEN}✓${NC} Observabilidad detectada" || echo -e "  ${RED}✗${NC} Sin observabilidad"
+    [ "$HAS_DATABASE" = true ] && echo -e "  ${GREEN}✓${NC} Base de datos detectada" || echo -e "  ${RED}✗${NC} Sin base de datos"
+    echo ""
 }
 
 # =============================================================================
@@ -227,27 +411,73 @@ download_core_files() {
 }
 
 download_agents() {
-    print_step "Descargando agentes..."
+    print_step "Descargando agentes seleccionados..."
     
-    local agents=(
-        "orchestrator.md"
-        "product-manager.md"
-        "solution-architect.md"
-        "backend-architect.md"
-        "frontend-architect.md"
-        "data-engineer.md"
-        "security-guardian.md"
-        "test-engineer.md"
-        "qa-lead.md"
-        "devops-engineer.md"
-        "observability-engineer.md"
-        "ai-integration-engineer.md"
-        "documentation-engineer.md"
-        "release-manager.md"
-        "code-reviewer.md"
-    )
+    # Lista de agentes a descargar
+    local agents_to_download=()
     
-    for agent in "${agents[@]}"; do
+    if [ "$MINIMAL_MODE" = true ]; then
+        # Modo minimal: solo agentes core esenciales
+        print_warning "Modo MINIMAL: instalando solo agentes core esenciales"
+        agents_to_download=(
+            "orchestrator.md"
+            "solution-architect.md"
+            "backend-architect.md"
+            "frontend-architect.md"
+            "code-reviewer.md"
+            "test-engineer.md"
+        )
+    else
+        # Agentes core (siempre se descargan)
+        agents_to_download=(
+            "orchestrator.md"
+            "solution-architect.md"
+            "code-reviewer.md"
+            "documentation-engineer.md"
+        )
+        
+        # Agentes según tamaño del proyecto
+        if [ "$PROJECT_SIZE" = "small" ]; then
+            agents_to_download+=("backend-architect.md" "frontend-architect.md" "test-engineer.md")
+        elif [ "$PROJECT_SIZE" = "medium" ]; then
+            agents_to_download+=("backend-architect.md" "frontend-architect.md" "test-engineer.md" "qa-lead.md" "product-manager.md")
+        else
+            # Large project - agregar más agentes base
+            agents_to_download+=("backend-architect.md" "frontend-architect.md" "test-engineer.md" "qa-lead.md" "product-manager.md")
+        fi
+        
+        # Agentes condicionales según características
+        if [ "$HAS_AUTH" = true ]; then
+            agents_to_download+=("security-guardian.md")
+        fi
+        
+        if [ "$HAS_PIPELINE" = true ]; then
+            agents_to_download+=("devops-engineer.md" "release-manager.md")
+        fi
+        
+        if [ "$HAS_AI" = true ]; then
+            agents_to_download+=("ai-integration-engineer.md")
+        fi
+        
+        if [ "$HAS_OBSERVABILITY" = true ]; then
+            agents_to_download+=("observability-engineer.md")
+        fi
+        
+        if [ "$HAS_DATABASE" = true ]; then
+            agents_to_download+=("data-engineer.md")
+        fi
+    fi
+    
+    # Mostrar qué agentes se van a instalar
+    echo ""
+    echo -e "${CYAN}Agentes a instalar (${#agents_to_download[@]}):${NC}"
+    for agent in "${agents_to_download[@]}"; do
+        echo "  • ${agent%.md}"
+    done
+    echo ""
+    
+    # Descargar cada agente
+    for agent in "${agents_to_download[@]}"; do
         # Descargar a ubicación estándar
         $DOWNLOAD_CMD "$REPO_URL/agents/$agent" > "$AGENTS_DIR_STANDARD/$agent" 2>/dev/null || {
             print_warning "No se pudo descargar $agent"
@@ -256,6 +486,38 @@ download_agents() {
         cp "$AGENTS_DIR_STANDARD/$agent" "$AGENTS_DIR_COMPAT/$agent" 2>/dev/null || true
         print_success "  $agent"
     done
+    
+    # Mostrar agentes omitidos si no estamos en modo minimal
+    if [ "$MINIMAL_MODE" = false ]; then
+        local all_agents=("orchestrator.md" "product-manager.md" "solution-architect.md" "backend-architect.md" 
+                         "frontend-architect.md" "data-engineer.md" "security-guardian.md" "test-engineer.md" 
+                         "qa-lead.md" "devops-engineer.md" "observability-engineer.md" "ai-integration-engineer.md" 
+                         "documentation-engineer.md" "release-manager.md" "code-reviewer.md")
+        
+        local omitted_agents=()
+        for agent in "${all_agents[@]}"; do
+            local found=false
+            for downloaded in "${agents_to_download[@]}"; do
+                if [ "$agent" = "$downloaded" ]; then
+                    found=true
+                    break
+                fi
+            done
+            if [ "$found" = false ]; then
+                omitted_agents+=("${agent%.md}")
+            fi
+        done
+        
+        if [ ${#omitted_agents[@]} -gt 0 ]; then
+            echo ""
+            echo -e "${YELLOW}Agentes omitidos (${#omitted_agents[@]}):${NC}"
+            for agent in "${omitted_agents[@]}"; do
+                echo "  • $agent"
+            done
+            echo ""
+            echo -e "${CYAN}Tip:${NC} Puedes agregar agentes después con: ${GREEN}./add-agent.sh <nombre-agente>${NC}"
+        fi
+    fi
 }
 
 download_template() {
@@ -425,15 +687,68 @@ main() {
     # Parse arguments
     for arg in "$@"; do
         case $arg in
+            --minimal)
+                MINIMAL_MODE=true
+                ;;
+            --no-pipeline)
+                NO_PIPELINE=true
+                ;;
+            --no-auth)
+                NO_AUTH=true
+                ;;
+            --no-ai)
+                NO_AI=true
+                ;;
+            --no-observability)
+                NO_OBSERVABILITY=true
+                ;;
             --template=*)
                 TEMPLATE="${arg#*=}"
+                ;;
+            --help)
+                echo "Uso: $0 [opciones]"
+                echo ""
+                echo "Opciones:"
+                echo "  --minimal              Instalar solo agentes core esenciales (6 agentes)"
+                echo "  --no-pipeline          Omitir agentes de CI/CD"
+                echo "  --no-auth              Omitir agentes de autenticación"
+                echo "  --no-ai                Omitir agentes de integración de IA"
+                echo "  --no-observability     Omitir agentes de observabilidad"
+                echo "  --template=<template>  Usar template específico (pwa-offline, saas-platform, ecommerce)"
+                echo "  --help                 Mostrar esta ayuda"
+                echo ""
+                echo "Ejemplos:"
+                echo "  $0 --minimal                    # Proyecto MVP básico"
+                echo "  $0 --no-pipeline                # Proyecto sin CI/CD"
+                echo "  $0 --no-auth --no-ai            # Proyecto sin auth ni IA"
+                echo ""
+                exit 0
                 ;;
         esac
     done
     
     print_banner
     check_requirements
-    collect_project_info
+    
+    # Si no es modo minimal, ejecutar detección y recolectar info
+    if [ "$MINIMAL_MODE" = false ]; then
+        run_auto_detection
+        collect_project_info
+    else
+        # En modo minimal, usar valores por defecto
+        DEFAULT_NAME=$(basename "$(pwd)")
+        PROJECT_NAME=$DEFAULT_NAME
+        PROJECT_DESCRIPTION="Proyecto MERN Stack con Next.js y TypeScript"
+        PROJECT_REPO="usuario/$PROJECT_NAME"
+        PROJECT_TYPE="web-app"
+        FEAT_AUTH=false
+        FEAT_PWA=false
+        FEAT_PAYMENTS=false
+        FEAT_AI=false
+        PAYMENT_PROVIDER=""
+        AI_PROVIDER=""
+        ENTITIES="User,Product"
+    fi
     
     echo ""
     create_directory_structure
