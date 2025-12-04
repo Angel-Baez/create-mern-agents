@@ -236,6 +236,11 @@ main() {
         echo -e "${GREEN}✓ Los agentes están listos para usar con GitHub Copilot${NC}"
         echo ""
     fi
+    
+    # Exit with error if any downloads failed
+    if [ $fail_count -gt 0 ]; then
+        exit 1
+    fi
 }
 
 main "$@"
