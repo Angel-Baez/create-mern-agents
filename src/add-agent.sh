@@ -147,7 +147,7 @@ download_agent() {
         read -p "¿Deseas reemplazarlo? [y/N]: " replace
         if [[ ! "$replace" =~ ^[Yy]$ ]]; then
             print_info "Omitiendo $agent"
-            return 0
+            return 2  # Return 2 to indicate skipped
         fi
     fi
     
@@ -209,21 +209,26 @@ main() {
     local skip_count=0
     
     for agent in "$@"; do
-        if download_agent "$agent"; then
-            ((success_count++))
+        set +e  # Temporarily disable exit on error
+        download_agent "$agent"
+        local result=$?
+        set -e  # Re-enable exit on error
+        
+        if [ $result -eq 0 ]; then
+            success_count=$((success_count + 1))
+        elif [ $result -eq 2 ]; then
+            skip_count=$((skip_count + 1))
         else
-            if agent_exists "$agent" && [[ ! "$replace" =~ ^[Yy]$ ]]; then
-                ((skip_count++))
-            else
-                ((fail_count++))
-            fi
+            fail_count=$((fail_count + 1))
         fi
     done
     
     # Resumen
     echo ""
     echo -e "${CYAN}═══════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}Agentes instalados: $success_count${NC}"
+    if [ $success_count -gt 0 ] || [ $skip_count -gt 0 ]; then
+        echo -e "${GREEN}Agentes instalados: $success_count${NC}"
+    fi
     if [ $skip_count -gt 0 ]; then
         echo -e "${YELLOW}Agentes omitidos: $skip_count${NC}"
     fi
@@ -237,7 +242,7 @@ main() {
         echo ""
     fi
     
-    # Exit with error if any downloads failed
+    # Exit with error only if any downloads failed (not if skipped)
     if [ $fail_count -gt 0 ]; then
         exit 1
     fi

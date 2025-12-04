@@ -116,7 +116,7 @@ detect_authentication() {
     
     # Buscar archivos de configuración de auth
     if [ -f "middleware.ts" ] || [ -f "middleware.js" ]; then
-        if grep -qE "(auth|session|token)" middleware.* 2>/dev/null; then
+        if grep -qE "(auth|session|token)" middleware.ts middleware.js 2>/dev/null; then
             HAS_AUTH=true
             return
         fi
@@ -201,7 +201,10 @@ detect_project_size() {
     if command -v jq &> /dev/null; then
         deps_count=$(jq '(.dependencies // {} | length) + (.devDependencies // {} | length)' package.json 2>/dev/null || echo 0)
     else
-        deps_count=$(grep -c '".*":' package.json 2>/dev/null || echo 0)
+        # Contar solo en las secciones dependencies y devDependencies
+        deps_count=$(grep -A 9999 '"dependencies"' package.json 2>/dev/null | grep -B 9999 '^  }' | grep -c '":' || echo 0)
+        local dev_deps=$(grep -A 9999 '"devDependencies"' package.json 2>/dev/null | grep -B 9999 '^  }' | grep -c '":' || echo 0)
+        deps_count=$((deps_count + dev_deps))
     fi
     
     # Determinar tamaño del proyecto
