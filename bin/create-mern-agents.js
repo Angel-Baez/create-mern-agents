@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 
@@ -12,13 +12,13 @@ try {
   const scriptPath = path.join(__dirname, "../src/init-agents.sh");
   
   // Obtener argumentos pasados al CLI (después de 'node' y 'script.js')
-  const args = process.argv.slice(2).join(" ");
+  const args = process.argv.slice(2);
 
   // Asegurar permisos de ejecución
   fs.chmodSync(scriptPath, 0o755);
 
-  // Pasar argumentos al script bash
-  execSync(`bash "${scriptPath}" ${args}`, {
+  // Pasar argumentos al script bash de forma segura
+  execFileSync("bash", [scriptPath, ...args], {
     stdio: "inherit",
     env: process.env
   });

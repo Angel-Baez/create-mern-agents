@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 
@@ -49,8 +49,8 @@ try {
   // Asegurar permisos de ejecución
   fs.chmodSync(scriptPath, 0o755);
 
-  // Pasar nombres de agentes al script bash
-  execSync(`bash "${scriptPath}" ${agents.join(" ")}`, {
+  // Pasar nombres de agentes al script bash de forma segura
+  execFileSync("bash", [scriptPath, ...agents], {
     stdio: "inherit",
     env: process.env
   });
