@@ -258,6 +258,11 @@ download_core_files() {
 
 count_entities() {
     local entities="$1"
+    # Handle empty or whitespace-only input
+    if [ -z "$entities" ]; then
+        echo "0"
+        return
+    fi
     echo "$entities" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | wc -l
 }
 
@@ -315,7 +320,8 @@ download_agents() {
     print_step "Seleccionando agentes necesarios para tu proyecto..."
     
     # Obtener lista inteligente de agentes
-    local agents=($(select_agents_by_needs))
+    local agents_output=$(select_agents_by_needs)
+    local agents=($agents_output)
     
     # Total de agentes disponibles
     local total_available=15

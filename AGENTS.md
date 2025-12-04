@@ -19,6 +19,8 @@ Estos agentes se instalan en **todos los proyectos**, sin importar el tamaño:
 
 **Total CORE: 6 agentes**
 
+> **Nota:** En modo minimal (`--minimal`), se instalan los 6 agentes CORE más `security-guardian.md` (por auth habilitado por defecto), resultando en 7 agentes totales.
+
 ---
 
 ## 📏 Agentes por Tamaño de Proyecto
