@@ -76,14 +76,32 @@ Si instalaste con `--minimal` o quieres agregar agentes específicos después:
 
 ```bash
 # Agregar un agente
-./add-agent.sh security-guardian
+npx create-mern-agents add security-guardian
 
 # Agregar múltiples agentes
-./add-agent.sh devops-engineer release-manager
+npx create-mern-agents add devops-engineer release-manager
 
 # Ver agentes disponibles
-./add-agent.sh --help
+npx create-mern-agents list
+
+# Ver información de un agente
+npx create-mern-agents info orchestrator
 ```
+
+### Comandos disponibles
+
+- **`add <agente...>`** - Agrega uno o más agentes al proyecto
+  - Descarga agentes desde el repositorio remoto
+  - Pregunta si deseas reemplazar agentes existentes
+  - Soporta múltiples agentes en un solo comando
+  
+- **`list`** - Lista todos los agentes disponibles
+  - Organizado por categoría
+  - Muestra cuáles están instalados (✓)
+  
+- **`info <agente>`** - Muestra información detallada de un agente
+  - Descripción, rol y categoría
+  - Estado de instalación
 
 ## 📋 Agentes disponibles
 
@@ -161,13 +179,13 @@ npx create-mern-agents
 npx create-mern-agents --minimal
 
 # 2. Agregar autenticación cuando la implementes
-./add-agent.sh security-guardian
+npx create-mern-agents add security-guardian
 
 # 3. Agregar CI/CD cuando lo configures
-./add-agent.sh devops-engineer release-manager
+npx create-mern-agents add devops-engineer release-manager
 
 # 4. Agregar observabilidad para producción
-./add-agent.sh observability-engineer
+npx create-mern-agents add observability-engineer
 ```
 
 ## 🔧 Cómo funciona
@@ -219,8 +237,8 @@ Para actualizar los agentes a la última versión:
 # Volver a ejecutar el script mantendrá tu project-context.yml
 npx create-mern-agents
 
-# O actualizar agentes específicos
-./add-agent.sh security-guardian  # Responde "y" para reemplazar
+# O actualizar agentes específicos (responde "y" para reemplazar cuando se pregunte)
+npx create-mern-agents add security-guardian
 ```
 
 ## 🆘 Solución de problemas
@@ -232,14 +250,14 @@ Asegúrate de que:
 - Archivos de configuración (.env.example, etc.) existen
 
 ### Agregar agentes manualmente
-Si la detección automática falla, usa flags o `add-agent.sh`:
+Si la detección automática falla, usa flags o el comando `add`:
 
 ```bash
 # Forzar omisión de agentes
 npx create-mern-agents --no-pipeline --no-auth
 
 # Agregar manualmente después
-./add-agent.sh security-guardian devops-engineer
+npx create-mern-agents add security-guardian devops-engineer
 ```
 
 ## 📚 Recursos adicionales

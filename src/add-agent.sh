@@ -28,7 +28,7 @@ REPO_URL="https://raw.githubusercontent.com/Angel-Baez/mern-agents-framework/mai
 AGENTS_DIR_STANDARD=".github/agents"
 AGENTS_DIR_COMPAT=".github/copilot/agents"
 
-# Lista de agentes disponibles
+# Lista de agentes disponibles (debe coincidir con AGENTS_METADATA en bin/create-mern-agents.js)
 AVAILABLE_AGENTS=(
     "ai-integration-engineer"
     "backend-architect"
