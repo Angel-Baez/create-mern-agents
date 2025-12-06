@@ -108,13 +108,13 @@ jobs:
             
             // Generar tabla de agentes
             let agentTable = '| Agente | Casos | Éxitos | Violaciones | % Éxito |\n';
-            agentTable += '|--------|-------|--------|-------------|---------|\\n';
+            agentTable += '|--------|-------|--------|-------------|---------|' + '\n';
             
             Object.entries(agentStats)
               .sort((a, b) => b[1].rate - a[1].rate)
               .forEach(([agent, stats]) => {
                 const emoji = stats.rate == 100 ? '🏆' : stats.rate >= 50 ? '⚠️' : '❌';
-                agentTable += `| ${agent} | ${stats.total} | ${stats.successes} | ${stats.violations} | ${stats.rate}% ${emoji} |\\n`;
+                agentTable += `| ${agent} | ${stats.total} | ${stats.successes} | ${stats.violations} | ${stats.rate}% ${emoji} |\n`;
               });
             
             // Agrupar sub-issues por resultado
@@ -131,33 +131,34 @@ jobs:
             // Generar listas de sub-issues
             let successList = successIssues.map(i =>
               `- #${i.number} - ${i.title}`
-            ).join('\\n');
+            ).join('\n');
             
             let majorList = majorIssues.map(i =>
               `- #${i.number} - ${i.title}`
-            ).join('\\n');
+            ).join('\n');
             
             let minorList = minorIssues.map(i =>
               `- #${i.number} - ${i.title}`
-            ).join('\\n');
+            ).join('\n');
             
             // Generar clasificación
             let classification = '';
             const totalViolations = majorViolations + minorViolations;
             if (totalViolations === 0) {
-              classification = '- [x] 0 fallos – **A+ Perfecto**\\n- [ ] 1-3 fallos – **Ajuste menor**\\n- [ ] 4-10 fallos – **Ajuste moderado**\\n- [ ] 11+ fallos – **Revisión profunda**';
+              classification = '- [x] 0 fallos – **A+ Perfecto**\n- [ ] 1-3 fallos – **Ajuste menor**\n- [ ] 4-10 fallos – **Ajuste moderado**\n- [ ] 11+ fallos – **Revisión profunda**';
             } else if (totalViolations <= 3) {
-              classification = '- [ ] 0 fallos – **A+ Perfecto**\\n- [x] 1-3 fallos – **Ajuste menor** ← Estamos aquí\\n- [ ] 4-10 fallos – **Ajuste moderado**\\n- [ ] 11+ fallos – **Revisión profunda**';
+              classification = '- [ ] 0 fallos – **A+ Perfecto**\n- [x] 1-3 fallos – **Ajuste menor** ← Estamos aquí\n- [ ] 4-10 fallos – **Ajuste moderado**\n- [ ] 11+ fallos – **Revisión profunda**';
             } else if (totalViolations <= 10) {
-              classification = '- [ ] 0 fallos – **A+ Perfecto**\\n- [ ] 1-3 fallos – **Ajuste menor**\\n- [x] 4-10 fallos – **Ajuste moderado** ← Estamos aquí\\n- [ ] 11+ fallos – **Revisión profunda**';
+              classification = '- [ ] 0 fallos – **A+ Perfecto**\n- [ ] 1-3 fallos – **Ajuste menor**\n- [x] 4-10 fallos – **Ajuste moderado** ← Estamos aquí\n- [ ] 11+ fallos – **Revisión profunda**';
             } else {
-              classification = '- [ ] 0 fallos – **A+ Perfecto**\\n- [ ] 1-3 fallos – **Ajuste menor**\\n- [ ] 4-10 fallos – **Ajuste moderado**\\n- [x] 11+ fallos – **Revisión profunda** ← Estamos aquí';
+              classification = '- [ ] 0 fallos – **A+ Perfecto**\n- [ ] 1-3 fallos – **Ajuste menor**\n- [ ] 4-10 fallos – **Ajuste moderado**\n- [x] 11+ fallos – **Revisión profunda** ← Estamos aquí';
             }
             
             // Construir el body actualizado del Epic
+            const cycleDate = new Date().toISOString().split('T')[0];
             const epicBody = `# 📊 [EPIC] Auditoría de 100 Usos - Framework de 15 Agentes
 
-**Ciclo:** 2025-12-06  
+**Ciclo:** ${cycleDate}  
 **Objetivo:** 0 violaciones en 100 usos reales  
 **Progreso:** ${total}/100 casos (${((total/100)*100).toFixed(0)}%)
 

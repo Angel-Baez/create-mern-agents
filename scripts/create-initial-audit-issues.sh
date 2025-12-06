@@ -4,9 +4,11 @@
 # Este script es de REFERENCIA - los issues deben crearse manualmente o en el repositorio correcto
 
 REPO="${1:-Angel-Baez/mern-agents-framework}"
+EPIC_NUMBER="${2:-7}"
 
 echo "📝 Script de referencia para crear los 4 sub-issues iniciales"
 echo "Repository target: $REPO"
+echo "Epic issue number: #$EPIC_NUMBER"
 echo ""
 echo "NOTA: Este script crea issues en el repositorio especificado."
 echo "Asegúrate de ejecutarlo contra el repositorio correcto (mern-agents-framework)"
@@ -28,7 +30,7 @@ gh issue create \
   --repo "$REPO" \
   --title "[Caso 1] Orchestrator - Handoff presupuestos multi-agente" \
   --label "audit,case-success,agent:orchestrator,env:github-copilot" \
-  --body "**Parent:** #7
+  --body "**Parent:** #$EPIC_NUMBER
 **Resultado:** ✅ Éxito
 **Agente:** orchestrator
 **Entorno:** GitHub Copilot Chat
@@ -62,7 +64,7 @@ gh issue create \
   --repo "$REPO" \
   --title "[Caso 2] Backend-Architect - Violación de scope (modificó frontend)" \
   --label "audit,case-violation-major,agent:backend-architect,env:github-copilot,violation:scope" \
-  --body "**Parent:** #7
+  --body "**Parent:** #$EPIC_NUMBER
 **Resultado:** ❌ Violación Mayor
 **Agente:** backend-architect
 **Entorno:** GitHub Copilot Chat
@@ -104,7 +106,7 @@ gh issue create \
   --repo "$REPO" \
   --title "[Caso 3] Frontend-Architect - Omisión de protocolo de verificación" \
   --label "audit,case-violation-minor,agent:frontend-architect,env:vscode,violation:protocol" \
-  --body "**Parent:** #7
+  --body "**Parent:** #$EPIC_NUMBER
 **Resultado:** ⚠️ Violación Menor
 **Agente:** frontend-architect
 **Entorno:** VSCode
@@ -146,7 +148,7 @@ gh issue create \
   --repo "$REPO" \
   --title "[Caso 4] Orchestrator - Handoff a Product Manager para roadmap" \
   --label "audit,case-success,agent:orchestrator,env:vscode" \
-  --body "**Parent:** #7
+  --body "**Parent:** #$EPIC_NUMBER
 **Resultado:** ✅ Éxito
 **Agente:** orchestrator
 **Entorno:** VSCode
