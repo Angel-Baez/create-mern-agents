@@ -43,73 +43,17 @@ El script ahora descarga **solo los agentes necesarios** según:
 
 Ver [AGENTS.md](./AGENTS.md) para detalles completos.
 
-## 📦 Gestión de Agentes
+## 📦 Agregar Agentes Después
 
-### Agregar agentes individuales
-
-Si tu proyecto crece, puedes agregar agentes específicos sin reinstalar todo:
+Si tu proyecto crece, puedes agregar agentes individuales:
 
 ```bash
 # Ver agentes disponibles
-npx create-mern-agents list
+./src/add-agent.sh --list
 
 # Agregar un agente específico
-npx create-mern-agents add security-guardian
-
-# Agregar múltiples agentes a la vez
-npx create-mern-agents add devops-engineer release-manager
-
-# Ver información detallada de un agente
-npx create-mern-agents info orchestrator
-```
-
-### Comandos disponibles
-
-| Comando | Descripción |
-|---------|-------------|
-| `npx create-mern-agents` | Inicializar proyecto con agentes (interactivo) |
-| `npx create-mern-agents --minimal` | Instalar solo agentes CORE |
-| `npx create-mern-agents add <agente> [...]` | Agregar uno o más agentes específicos |
-| `npx create-mern-agents list` | Listar todos los agentes disponibles |
-| `npx create-mern-agents info <agente>` | Ver información de un agente |
-| `npx create-mern-agents --help` | Mostrar ayuda |
-
-### Ejemplo de uso
-
-```bash
-$ npx create-mern-agents list
-
-📋 Agentes disponibles:
-
-Core
-  ✓ orchestrator         - Coordina todos los agentes del equipo
-  ✓ product-manager      - Define requerimientos y prioridades
-    solution-architect   - Diseño de arquitectura general
-
-Arquitectura
-    backend-architect    - Arquitectura backend y APIs
-    frontend-architect   - Arquitectura frontend y UI
-...
-
-✓ = instalado en este proyecto
-```
-
-```bash
-$ npx create-mern-agents add security-guardian
-
-ℹ Descargando security-guardian...
-✓ Agente 'security-guardian' instalado correctamente
-  Ahora puedes usar: @security-guardian <tu pregunta>
-```
-
-```bash
-$ npx create-mern-agents info orchestrator
-
-🎯 orchestrator
-
-Categoría: Core
-Descripción: Coordina todos los agentes del equipo
-Estado: Instalado ✓
+./src/add-agent.sh security-guardian
+./src/add-agent.sh devops-engineer
 ```
 
 ## 📚 Documentación

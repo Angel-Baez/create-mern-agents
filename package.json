@@ -1,6 +1,6 @@
 {
   "name": "create-mern-agents",
-  "version": "1.1.0",
+  "version": "1.0.0",
   "description": "CLI oficial para instalar e inicializar el MERN Agents Framework",
   "bin": {
     "create-mern-agents": "./bin/create-mern-agents.js"
