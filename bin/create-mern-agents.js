@@ -113,6 +113,9 @@ const AGENTS_METADATA = {
 };
 
 // Repository configuration
+// Note: This URL points to the official mern-agents-framework repository
+// where agent definitions are maintained. It's hardcoded to ensure stability
+// and prevent accidental downloads from forked/modified repositories.
 const REPO_URL = "https://raw.githubusercontent.com/Angel-Baez/mern-agents-framework/main";
 const AGENTS_DIR_STANDARD = ".github/agents";
 const AGENTS_DIR_COMPAT = ".github/copilot/agents";
@@ -137,7 +140,9 @@ function downloadFile(url) {
 
 function isAgentInstalled(agentName) {
   const standardPath = path.join(process.cwd(), AGENTS_DIR_STANDARD, `${agentName}.md`);
-  return fs.existsSync(standardPath);
+  const compatPath = path.join(process.cwd(), AGENTS_DIR_COMPAT, `${agentName}.md`);
+  // Check both locations - agent is installed if it exists in either location
+  return fs.existsSync(standardPath) || fs.existsSync(compatPath);
 }
 
 function ensureAgentDirectories() {
@@ -272,15 +277,18 @@ async function addAgents(agentNames) {
           output: process.stdout
         });
         
-        const answer = await new Promise(resolve => {
-          readline.question("¿Deseas reemplazarlo? [y/N]: ", resolve);
-        });
-        readline.close();
+        try {
+          const answer = await new Promise(resolve => {
+            readline.question("¿Deseas reemplazarlo? [y/N]: ", resolve);
+          });
 
-        if (answer.toLowerCase() !== "y" && answer.toLowerCase() !== "yes") {
-          console.log(`ℹ Omitiendo ${agentName}`);
-          skipCount++;
-          continue;
+          if (answer.toLowerCase() !== "y" && answer.toLowerCase() !== "yes") {
+            console.log(`ℹ Omitiendo ${agentName}`);
+            skipCount++;
+            continue;
+          }
+        } finally {
+          readline.close();
         }
       } else {
         // Non-interactive mode, skip
@@ -299,11 +307,21 @@ async function addAgents(agentNames) {
       const standardPath = path.join(process.cwd(), AGENTS_DIR_STANDARD, `${agentName}.md`);
       const compatPath = path.join(process.cwd(), AGENTS_DIR_COMPAT, `${agentName}.md`);
 
-      fs.writeFileSync(standardPath, content, "utf8");
-      fs.writeFileSync(compatPath, content, "utf8");
-
-      console.log(`✅ Guardado en ${AGENTS_DIR_STANDARD}/${agentName}.md`);
-      successCount++;
+      try {
+        fs.writeFileSync(standardPath, content, "utf8");
+        fs.writeFileSync(compatPath, content, "utf8");
+        console.log(`✅ Guardado en ${AGENTS_DIR_STANDARD}/${agentName}.md`);
+        successCount++;
+      } catch (writeErr) {
+        // If write fails, try to clean up partial writes
+        try {
+          if (fs.existsSync(standardPath)) fs.unlinkSync(standardPath);
+          if (fs.existsSync(compatPath)) fs.unlinkSync(compatPath);
+        } catch (cleanupErr) {
+          // Ignore cleanup errors
+        }
+        throw writeErr;
+      }
     } catch (err) {
       console.error(`❌ Error al descargar ${agentName}: ${err.message}`);
       failCount++;
