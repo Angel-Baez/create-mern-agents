@@ -364,14 +364,14 @@ download_agents() {
     
     local omitted=0
     for agent in "${all_agents[@]}"; do
-        local found=0
+        local found="false"
         for selected in "${agents[@]}"; do
             if [ "$agent" = "$selected" ]; then
-                found=1
+                found="true"
                 break
             fi
         done
-        if [ $found -eq 0 ]; then
+        if [ "$found" = "false" ]; then
             echo "    • $agent"
             omitted=$((omitted + 1))
         fi
@@ -579,7 +579,7 @@ main() {
         PROJECT_REPO="your-username/$PROJECT_NAME"
         PROJECT_TYPE="web-app"
         PROJECT_SIZE="small"
-        FEAT_AUTH="true"
+        FEAT_AUTH="true"  # This will add security-guardian (7th agent) via select_agents_by_needs()
         FEAT_PWA="false"
         FEAT_PAYMENTS="false"
         FEAT_AI="false"

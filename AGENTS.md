@@ -198,12 +198,12 @@ Si tu proyecto crece y necesitas más agentes, puedes agregarlos individualmente
 
 ```bash
 # Ver lista de agentes disponibles
-./src/add-agent.sh --list
+npx create-mern-agents list
 
 # Agregar un agente específico
-./src/add-agent.sh security-guardian
-./src/add-agent.sh devops-engineer
-./src/add-agent.sh ai-integration-engineer
+npx create-mern-agents add security-guardian
+npx create-mern-agents add devops-engineer
+npx create-mern-agents add ai-integration-engineer
 ```
 
 ---
@@ -216,7 +216,7 @@ Para proyectos MVP que quieren empezar rápido:
 npx create-mern-agents --minimal
 ```
 
-Esto instala solo los 6 agentes CORE con configuración por defecto.
+Esto instala 7 agentes: los 6 CORE más security-guardian (por autenticación habilitada por defecto).
 
 ---
 

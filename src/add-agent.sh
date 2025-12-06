@@ -43,36 +43,34 @@ print_warning() {
     echo -e "${YELLOW}⚠${NC} $1"
 }
 
-# Lista de agentes disponibles con descripción
+# Lista de agentes disponibles generada dinámicamente desde los archivos de agentes.
+# NOTA: Para descripciones y categorías completas, consulta el archivo fuente de verdad:
+#   bin/create-mern-agents.js (AGENTS_METADATA)
+# Si agregas, renombras o eliminas agentes, asegúrate de mantener ambos en sincronía.
 list_agents() {
     echo ""
-    echo -e "${CYAN}Agentes disponibles:${NC}"
+    echo -e "${CYAN}Agentes disponibles (detectados en el directorio de agentes):${NC}"
     echo ""
-    echo -e "${YELLOW}CORE (siempre recomendados):${NC}"
-    echo "  • orchestrator          - Coordina todos los agentes del equipo"
-    echo "  • product-manager       - Define requerimientos y prioridades"
-    echo "  • solution-architect    - Diseño de arquitectura general"
+    AGENTS_FOUND=0
+    # Buscar en ambos directorios posibles
+    for AGENTS_DIR in "$AGENTS_DIR_STANDARD" "$AGENTS_DIR_COMPAT"; do
+        if [ -d "$AGENTS_DIR" ]; then
+            for agent_file in "$AGENTS_DIR"/*; do
+                if [ -f "$agent_file" ]; then
+                    agent_name=$(basename "$agent_file")
+                    # Quitar extensión si existe (por ejemplo .js, .sh, etc.)
+                    agent_name="${agent_name%%.*}"
+                    echo "  • $agent_name"
+                    AGENTS_FOUND=1
+                fi
+            done
+        fi
+    done
+    if [ "$AGENTS_FOUND" -eq 0 ]; then
+        echo -e "${YELLOW}No se encontraron agentes en los directorios esperados.${NC}"
+    fi
     echo ""
-    echo -e "${YELLOW}DESARROLLO:${NC}"
-    echo "  • backend-architect     - Arquitectura backend y APIs"
-    echo "  • frontend-architect    - Arquitectura frontend y UI"
-    echo "  • data-engineer         - Modelado de datos y optimización DB"
-    echo ""
-    echo -e "${YELLOW}CALIDAD:${NC}"
-    echo "  • test-engineer         - Estrategia de testing y tests"
-    echo "  • qa-lead               - QA y testing de integración"
-    echo "  • code-reviewer         - Revisión de código y best practices"
-    echo "  • security-guardian     - Seguridad y autenticación"
-    echo ""
-    echo -e "${YELLOW}OPERACIONES:${NC}"
-    echo "  • devops-engineer       - CI/CD y automatización"
-    echo "  • observability-engineer - Monitoring y logging"
-    echo "  • release-manager       - Gestión de releases y deploys"
-    echo ""
-    echo -e "${YELLOW}ESPECIALISTAS:${NC}"
-    echo "  • ai-integration-engineer - Integración con APIs de IA"
-    echo "  • documentation-engineer  - Documentación técnica"
-    echo ""
+    echo -e "${YELLOW}Nota:${NC} Para descripciones y categorías, consulta la documentación o el archivo bin/create-mern-agents.js"
 }
 
 # Verificar requisitos
@@ -125,7 +123,9 @@ download_agent() {
         # Copiar a ubicación alternativa (compatibilidad)
         cp "$AGENTS_DIR_STANDARD/$agent_name" "$AGENTS_DIR_COMPAT/$agent_name" 2>/dev/null || true
         print_success "Agente $agent_name instalado correctamente"
-        echo ""
+        if ! cp "$AGENTS_DIR_STANDARD/$agent_name" "$AGENTS_DIR_COMPAT/$agent_name" 2>/dev/null; then
+            print_warning "No se pudo copiar a ubicación de compatibilidad: $AGENTS_DIR_COMPAT/$agent_name"
+        fi
         print_info "Ahora puedes usar el agente en GitHub Copilot Chat:"
         echo -e "  ${CYAN}@${agent_name%.md}${NC} <tu pregunta>"
     else
