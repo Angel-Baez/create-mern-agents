@@ -129,7 +129,7 @@ function getInstalledAgents() {
 // Descargar archivo desde URL
 function downloadFile(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
+    const request = https.get(url, (res) => {
       if (res.statusCode === 200) {
         let data = "";
         res.on("data", chunk => data += chunk);
@@ -138,6 +138,12 @@ function downloadFile(url) {
         reject(new Error(`HTTP ${res.statusCode}`));
       }
     }).on("error", reject);
+    
+    // Add timeout to prevent hanging
+    request.setTimeout(30000, () => {
+      request.destroy();
+      reject(new Error("Request timeout"));
+    });
   });
 }
 
@@ -195,8 +201,8 @@ async function commandAdd(agentNames) {
     // Verificar si ya existe
     if (isAgentInstalled(cleanName)) {
       printWarning(`El agente '${cleanName}' ya existe`);
-      const answer = await askQuestion("¿Deseas sobrescribirlo? [y/N]: ");
-      if (!answer.match(/^[Yy]$/)) {
+      const answer = await askQuestion("¿Deseas sobrescribirlo? (y/N): ");
+      if (!answer.match(/^[Yy](es)?$/i)) {
         printInfo("Operación cancelada para " + cleanName);
         continue;
       }
@@ -296,31 +302,36 @@ async function commandInfo(agentName) {
   console.log("");
   
   if (isInstalled) {
-    const agentPath = path.join(process.cwd(), AGENTS_DIR_STANDARD, `${cleanName}.md`);
-    const content = fs.readFileSync(agentPath, "utf8");
-    
-    // Extraer primera sección del markdown (descripción/rol)
-    const lines = content.split("\n");
-    let infoSection = [];
-    let foundStart = false;
-    
-    for (let line of lines) {
-      if (line.startsWith("#") && !foundStart) {
-        foundStart = true;
-        continue;
+    try {
+      const agentPath = path.join(process.cwd(), AGENTS_DIR_STANDARD, `${cleanName}.md`);
+      const content = fs.readFileSync(agentPath, "utf8");
+      
+      // Extraer primera sección del markdown (descripción/rol)
+      const lines = content.split("\n");
+      let infoSection = [];
+      let foundStart = false;
+      
+      for (let line of lines) {
+        if (line.startsWith("#") && !foundStart) {
+          foundStart = true;
+          continue;
+        }
+        if (foundStart && line.trim() && !line.startsWith("#")) {
+          infoSection.push(line);
+          if (infoSection.length >= 5) break;
+        }
+        if (foundStart && line.startsWith("#") && infoSection.length > 0) {
+          break;
+        }
       }
-      if (foundStart && line.trim() && !line.startsWith("#")) {
-        infoSection.push(line);
-        if (infoSection.length >= 5) break;
+      
+      if (infoSection.length > 0) {
+        console.log("\x1b[1mDetalles:\x1b[0m");
+        infoSection.forEach(line => console.log(`  ${line.trim()}`));
       }
-      if (foundStart && line.startsWith("#") && infoSection.length > 0) {
-        break;
-      }
-    }
-    
-    if (infoSection.length > 0) {
-      console.log("\x1b[1mDetalles:\x1b[0m");
-      infoSection.forEach(line => console.log(`  ${line.trim()}`));
+    } catch (err) {
+      // If we can't read the file, just skip the details section
+      printWarning("No se pudo leer el archivo del agente");
     }
   } else {
     printInfo("Para ver más detalles, instala el agente:");
