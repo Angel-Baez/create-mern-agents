@@ -321,6 +321,30 @@ El workflow de GitHub Actions se disparará automáticamente y:
 2. Busca el workflow "Publish package to npm"
 3. Click en la ejecución correspondiente a tu tag para ver los detalles
 
+## 🔍 Sistema de Auditoría
+
+Este repositorio incluye infraestructura para un sistema de auditoría híbrido que permite rastrear y analizar el comportamiento de los agentes del framework.
+
+### Características del Sistema de Auditoría
+
+- **Issue Templates**: Template estructurado para registrar casos de auditoría individuales
+- **Labels Automáticos**: Sistema de etiquetas para clasificar casos por agente, entorno, resultado y tipo de violación
+- **GitHub Actions**: Workflow automático que actualiza métricas en tiempo real
+- **Epic Tracking**: Issue Epic que agrega todas las métricas de los sub-issues
+- **Dashboard**: Visualización de tendencias y rendimiento por agente
+
+### Documentación Completa
+
+Para más información sobre cómo usar el sistema de auditoría, consulta [**AUDIT_SYSTEM.md**](./AUDIT_SYSTEM.md).
+
+Incluye:
+- Configuración inicial
+- Crear casos de auditoría
+- Filtrar y buscar casos
+- Tipos de violaciones
+- Niveles de severidad
+- Ejemplos de uso completo
+
 ## 📄 Licencia
 
 MIT © Angel Baez
